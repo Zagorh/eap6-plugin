@@ -1,4 +1,5 @@
 /*
+   Copyright 2018 Joao Rico
    Copyright 2013 Red Hat, Inc. and/or its affiliates.
 
    This file is part of eap6 plugin.
