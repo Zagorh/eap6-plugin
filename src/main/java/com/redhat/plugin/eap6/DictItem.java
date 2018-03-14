@@ -18,102 +18,47 @@
 
 package com.redhat.plugin.eap6;
 
-import java.io.Reader;
-import java.io.BufferedReader;
-import java.io.IOException;
-
-import java.util.List;
-import java.util.ArrayList;
-
-import java.text.ParseException;
-
 public class DictItem {
 
-    public final String groupId;
-    public final String artifactId;
-    public final String version;
-    public final String moduleName;
+    private String groupId;
+    private String artifactId;
+    private String version;
+    private String moduleName;
+    private String export;
 
-    private DictItem(String groupId,
-                     String artifactId,
-                     String version,
-                     String moduleName) {
-        this.groupId=groupId;
-        this.artifactId=artifactId;
-        this.version=version;
-        this.moduleName=moduleName;
-    }
-    
-    public static DictItem parse(String s) 
-        throws ParseException {
-        int index=s.indexOf('#');
-        if(index!=-1)
-            s=s.substring(0,index);
-        s=s.trim();
-        if(s.length()<=0)
-            return null;
-
-        index=s.indexOf('=');
-        if(index==-1)
-            throw new ParseException("Expected = in "+s,0);
-        String m=s.substring(index+1).trim();
-        s=s.substring(0,index);
-        index=s.indexOf(':');
-        String g=s.substring(0,index);
-        s=s.substring(index+1);
-        index=s.indexOf(':');
-        String a;
-        String v="*";
-        if(index==-1)
-            a=s.trim();
-        else {
-            a=s.substring(0,index);
-            s=s.substring(index+1);
-            v=s.trim();
-        }
-        return new DictItem(g,a,v,m.length()==0?null:m);
+    public DictItem() {
     }
 
-    public static List<DictItem> parse(Reader rd) 
-        throws IOException,ParseException {
-        BufferedReader br=rd instanceof BufferedReader?(BufferedReader)rd:
-            new BufferedReader(rd);
-        String line;
-        List<DictItem> list=new ArrayList<DictItem>();
-        while((line=br.readLine())!=null) {
-            line=line.trim();
-            if(line.length()>0) {
-                DictItem item=parse(line);
-                if(item!=null)
-                    list.add(item);
-            }
-        }
-        return list;
+    public String getGroupId() {
+        return groupId;
     }
 
-    /**
-     * Finds the best matching artifact mapping
-     */
-    public static DictItem find(List<DictItem> dictionary,
-                                String groupId,
-                                String artifactId,
-                                String version) {
-        DictItem match=null;
-        for(DictItem item:dictionary) {
-            if(item.groupId.equals(groupId)&&
-               item.artifactId.equals(artifactId)) {
-                // If there is a version matching this version, pick that
-                if(version.equals(item.version))
-                    match=item;
-                else if(item.version.equals("*")) {
-                    if(match!=null&&match.version.equals("*"))
-                        throw new RuntimeException("Duplicate:"+match);
-                    if(match==null)
-                        match=item;
-                }
-            }
-        }
-        return match;
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    public void setArtifactId(String artifactId) {
+        this.artifactId = artifactId;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
     }
 
     public String toString() {

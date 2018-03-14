@@ -45,7 +45,7 @@ import org.w3c.dom.ls.LSSerializer;
  * @author Yusuf Koer <ykoer@redhat.com>
  * @author Burak Serdar <bserdar@redhat.com>
  */
-public abstract class  AbstractEAP6Mojo extends AbstractMojo {
+public abstract class AbstractEAP6Mojo extends AbstractMojo {
 
     @Component
     protected MavenProject project;
@@ -70,7 +70,6 @@ public abstract class  AbstractEAP6Mojo extends AbstractMojo {
     protected Map<String, Artifact> reverseMap = new HashMap<String, Artifact>();
 
     /**
-     *
      * @throws MojoFailureException
      */
     protected void initializeDictionaries() throws MojoFailureException {
@@ -99,13 +98,13 @@ public abstract class  AbstractEAP6Mojo extends AbstractMojo {
         reverseMap = new HashMap<String, Artifact>();
         for (Artifact a : artifacts) {
             DictItem item = dictionary.find(a.getGroupId(), a.getArtifactId(), a.getVersion());
-            if (item != null && item.moduleName != null) {
-                reverseMap.put(item.moduleName, a);
+            if (item != null && item.getModuleName() != null) {
+                reverseMap.put(item.getModuleName(), a);
 
                 if (!a.getScope().equals(Artifact.SCOPE_PROVIDED)) {
                     artifactsNotProvided.add(a);
                 } else {
-                    artifactsAsModules.put(a, item.moduleName);
+                    artifactsAsModules.put(a, item.getModuleName());
                 }
             }
         }
@@ -117,17 +116,17 @@ public abstract class  AbstractEAP6Mojo extends AbstractMojo {
         }
     }
 
-    protected Artifact findArtifact(String groupId,String artifactId) {
-        Set<Artifact> artifacts=project.getArtifacts();
-        getLog().debug("Searching "+groupId+":"+artifactId+" in "+artifacts);
-        for(Artifact x:artifacts)
-            if(x.getGroupId().equals(groupId)&&
-               x.getArtifactId().equals(artifactId))
+    protected Artifact findArtifact(String groupId, String artifactId) {
+        Set<Artifact> artifacts = project.getArtifacts();
+        getLog().debug("Searching " + groupId + ":" + artifactId + " in " + artifacts);
+        for (Artifact x : artifacts)
+            if (x.getGroupId().equals(groupId) &&
+                    x.getArtifactId().equals(artifactId))
                 return x;
         return null;
     }
 
-    protected Document initializeSkeletonFile (String skeletonFileName) throws MojoFailureException {
+    protected Document initializeSkeletonFile(String skeletonFileName) throws MojoFailureException {
         // Is there a skeleton file?
         Document doc;
         try {
@@ -141,7 +140,7 @@ public abstract class  AbstractEAP6Mojo extends AbstractMojo {
             if (skeletonFile != null) {
                 doc = factory.newDocumentBuilder().parse(skeletonFile);
             } else {
-                doc = factory.newDocumentBuilder().parse(getClass().getResourceAsStream("/"+skeletonFileName));
+                doc = factory.newDocumentBuilder().parse(getClass().getResourceAsStream("/" + skeletonFileName));
             }
 
             return doc;
@@ -160,7 +159,7 @@ public abstract class  AbstractEAP6Mojo extends AbstractMojo {
 
             final LSOutput lsOutput = domImplementation.createLSOutput();
             lsOutput.setByteStream(ostream);
-            lsSerializer.write(doc,lsOutput);
+            lsSerializer.write(doc, lsOutput);
         } catch (Exception e) {
             throw new MojoFailureException("Cannot write output file", e);
         }

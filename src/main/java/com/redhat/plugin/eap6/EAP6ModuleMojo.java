@@ -42,13 +42,13 @@ import org.w3c.dom.NodeList;
 /**
  * This plugin generates module.xml file for the given artifact based
  * on the module dependencies.
- *
+ * <p>
  * Configuration items:
  * <ul>
- *
+ * <p>
  * <li>generate: Default set to true. If set to false, the file won't be generated,
  * but dependency analysis will be performed and warnings will be printed out.</li>
- *
+ * <p>
  * <li>skeletonDir: Directory containing skeleton module.xml. By default,
  * <pre>src/main/etc</pre>. If there is a skeleton file in this
  * directory, it will be used as a baseline, and module dependencies
@@ -89,15 +89,15 @@ import org.w3c.dom.NodeList;
  *        </configuration>
  *     </plugin>
  * </pre>
- *
+ * <p>
  * Dictionary file format:
- *
+ * <p>
  * A dictionary file contains a maven artifact to EAP6 module mapping at each line:
- *
+ * <p>
  * <pre>
  *      javax.faces:jsf-impl=com.sun.jsf-impl
  * </pre>
- *
+ * <p>
  * Here, it is declared that if the project depends on any version of
  * javax.faces:jsf-impl maven artifact, and if it appears with scope
  * <pre>provided</pre>, then a module dependency will be added to
@@ -107,7 +107,7 @@ import org.w3c.dom.NodeList;
  *     javax.faces:jsf-impl:1.0=com.sun.jsf-impl
  *     javax.faces:jsf-impl:2.0=com.sun.jsf-impl.2
  * </pre>
- *
+ * <p>
  * With this decleration, different versions of the same maven
  * artifact is mapped to different modules. The plugin searches for
  * the most specific match, that is, if there is a match with a
@@ -119,9 +119,9 @@ import org.w3c.dom.NodeList;
  */
 
 @Mojo(name = "build-module",
-      requiresDependencyResolution = ResolutionScope.COMPILE,
-      defaultPhase = LifecyclePhase.PREPARE_PACKAGE,
-      threadSafe = true
+        requiresDependencyResolution = ResolutionScope.COMPILE,
+        defaultPhase = LifecyclePhase.PREPARE_PACKAGE,
+        threadSafe = true
 )
 public class EAP6ModuleMojo extends AbstractEAP6Mojo {
 
@@ -158,7 +158,7 @@ public class EAP6ModuleMojo extends AbstractEAP6Mojo {
         // Are we to generate the file?
         if (generate) {
 
-            Document doc = initializeSkeletonFile (MODULE_DESCRIPTOR_NAME);
+            Document doc = initializeSkeletonFile(MODULE_DESCRIPTOR_NAME);
 
             try {
                 buildModule(doc, artifactsAsModules);
@@ -189,14 +189,14 @@ public class EAP6ModuleMojo extends AbstractEAP6Mojo {
 
         // check if there is a mapping in the dictionary for the project artifact
         DictItem mapping = dictionary.find(project.getGroupId(), project.getArtifactId(), project.getVersion());
-        if (mapping == null || mapping.moduleName == null) {
+        if (mapping == null || mapping.getModuleName() == null) {
             throw new MojoFailureException("No mapping found for the project artifact: " + project.getArtifact());
         }
 
         Element root = doc.getDocumentElement();
         if (!root.getTagName().equals("module"))
             throw new MojoFailureException("Root element is not module");
-        root.setAttribute("name", mapping.moduleName);
+        root.setAttribute("name", mapping.getModuleName());
 
         Element dependencies = (Element) xp_dependencies.evaluate(doc, XPathConstants.NODE);
         if (dependencies == null) {
@@ -217,11 +217,11 @@ public class EAP6ModuleMojo extends AbstractEAP6Mojo {
         }
 
         // set resource-root path attribute
-        resource_root.setAttribute("path", buildFinalName+"."+project.getPackaging());
+        resource_root.setAttribute("path", buildFinalName + "." + project.getPackaging());
 
         for (Map.Entry<Artifact, String> entry : moduleMap.entrySet()) {
             String module = entry.getValue();
-            XPathExpression xp = xpf.newXPath().compile("module [@name=\"" + module + "\"]");
+            XPathExpression xp = xpf.newXPath().compile(String.format("module [@name=\"%s\"]", module));
             if (xp.evaluate(dependencies, XPathConstants.NODE) == null) {
                 Element moduleEl = doc.createElement("module");
                 moduleEl.setAttribute("name", module);
