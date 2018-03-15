@@ -25,6 +25,7 @@ public class DictItem {
     private String artifactId;
     private String version;
     private String moduleName;
+    private String metaInf;
     private String export;
 
     public DictItem() {
@@ -62,14 +63,31 @@ public class DictItem {
         this.moduleName = moduleName;
     }
 
+    public String getMetaInf() {
+        return metaInf;
+    }
+
+    public void setMetaInf(String metaInf) {
+        this.metaInf = metaInf;
+    }
+
+    public String getExport() {
+        return export;
+    }
+
+    public void setExport(String export) {
+        this.export = export;
+    }
+
+    @Override
     public String toString() {
-        StringBuffer buf=new StringBuffer();
-        buf.append(groupId).append(':').append(artifactId);
-        if(version!=null)
-            buf.append(':').append(version);
-        buf.append('=');
-        if(moduleName!=null)
-            buf.append(moduleName);
-        return buf.toString();
+        return "DictItem{" +
+                "groupId='" + groupId + '\'' +
+                ", artifactId='" + artifactId + '\'' +
+                ", version='" + version + '\'' +
+                ", moduleName='" + moduleName + '\'' +
+                ", metaInf='" + metaInf + '\'' +
+                ", export='" + export + '\'' +
+                '}';
     }
 }

@@ -27,6 +27,7 @@ import org.json.simple.parser.ParseException;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DictItemUtil {
@@ -36,12 +37,13 @@ public class DictItemUtil {
 
     public static List<DictItem> parseDictionaryFile(Reader rd) {
         JSONParser parser = new JSONParser();
-        List<DictItem> dictItemList = new ArrayList<DictItem>();
 
         try {
             JSONObject dictionaryObj = (JSONObject) parser.parse(rd);
 
-            JSONArray itemsArray = (JSONArray) dictionaryObj.get("items");
+            JSONArray itemsArray = (JSONArray) dictionaryObj.get("modules");
+
+            List<DictItem> dictItemList = new ArrayList<DictItem>(itemsArray.size());
 
             for (Object item : itemsArray) {
                 JSONObject itemObj = (JSONObject) item;
@@ -51,9 +53,13 @@ public class DictItemUtil {
                 dictItem.setArtifactId((String) itemObj.get("artifactId"));
                 dictItem.setVersion((String) itemObj.get("version"));
                 dictItem.setModuleName((String) itemObj.get("moduleName"));
+                dictItem.setExport((String) itemObj.get("export"));
+                dictItem.setMetaInf((String) itemObj.get("meta-inf"));
 
                 dictItemList.add(dictItem);
             }
+
+            return dictItemList;
 
         } catch (IOException e) {
             throw new IllegalArgumentException("Error reading the dictionary file", e);
@@ -61,7 +67,6 @@ public class DictItemUtil {
             throw new IllegalArgumentException("Error parsing the dictionary file.", e);
         }
 
-        return dictItemList;
     }
 
 }
