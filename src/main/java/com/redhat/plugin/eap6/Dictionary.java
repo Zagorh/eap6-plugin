@@ -19,6 +19,7 @@
 package com.redhat.plugin.eap6;
 
 import com.redhat.plugin.eap6.util.DictItemUtil;
+import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
 import java.io.FileReader;
@@ -28,7 +29,6 @@ import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Dictionary {
@@ -41,17 +41,21 @@ public class Dictionary {
         }
     }
 
-    public void addDictionary(File f) throws IOException, ParseException {
+    public void addDictionary(File f) throws IOException {
         FileReader reader = new FileReader(f);
         addDictionary(DictItemUtil.parseDictionaryFile(reader));
     }
 
-    public void addDictionary(InputStream stream) throws IOException, ParseException {
+    public void addDictionary(InputStream stream) throws IOException {
         addDictionary(DictItemUtil.parseDictionaryFile(new InputStreamReader(stream)));
     }
 
     public DictItem find(String groupId, String artifactId, String version) {
-        return dictionaries.get(dictionaryKey(groupId, artifactId, version));
+        DictItem item = dictionaries.get(dictionaryKey(groupId, artifactId, version));
+        if (item == null) {
+            item = dictionaries.get(dictionaryKey(groupId, artifactId, "*"));
+        }
+        return item;
     }
 
     private String dictionaryKey(DictItem dictItem) {

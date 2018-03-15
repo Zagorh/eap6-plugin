@@ -19,15 +19,16 @@
 package com.redhat.plugin.eap6.util;
 
 import com.redhat.plugin.eap6.DictItem;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
+import org.everit.json.schema.ValidationException;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class DictItemUtil {
@@ -35,37 +36,32 @@ public class DictItemUtil {
     private DictItemUtil() {
     }
 
-    public static List<DictItem> parseDictionaryFile(Reader rd) {
-        JSONParser parser = new JSONParser();
+    public static List<DictItem> parseDictionaryFile(Reader rd) throws IOException, ValidationException {
 
-        try {
-            JSONObject dictionaryObj = (JSONObject) parser.parse(rd);
+        JSONObject dictionaryObj = new JSONObject(new JSONTokener(rd));
 
-            JSONArray itemsArray = (JSONArray) dictionaryObj.get("modules");
+        JSONUtil.validateJSON(dictionaryObj);
 
-            List<DictItem> dictItemList = new ArrayList<DictItem>(itemsArray.size());
 
-            for (Object item : itemsArray) {
-                JSONObject itemObj = (JSONObject) item;
+        JSONArray itemsArray = dictionaryObj.getJSONArray("modules");
 
-                DictItem dictItem = new DictItem();
-                dictItem.setGroupId((String) itemObj.get("groupId"));
-                dictItem.setArtifactId((String) itemObj.get("artifactId"));
-                dictItem.setVersion((String) itemObj.get("version"));
-                dictItem.setModuleName((String) itemObj.get("moduleName"));
-                dictItem.setExport((String) itemObj.get("export"));
-                dictItem.setMetaInf((String) itemObj.get("meta-inf"));
+        List<DictItem> dictItemList = new ArrayList<DictItem>(itemsArray.length());
 
-                dictItemList.add(dictItem);
-            }
+        for (Object item : itemsArray.toList()) {
+            JSONObject itemObj = (JSONObject) item;
 
-            return dictItemList;
+            DictItem dictItem = new DictItem();
+            dictItem.setGroupId(itemObj.getString("groupId"));
+            dictItem.setArtifactId(itemObj.getString("artifactId"));
+            dictItem.setVersion(itemObj.getString("version"));
+            dictItem.setModuleName(itemObj.getString("moduleName"));
+            dictItem.setExport(itemObj.getString("export"));
+            dictItem.setMetaInf(itemObj.getString("meta-inf"));
 
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Error reading the dictionary file", e);
-        } catch (ParseException e) {
-            throw new IllegalArgumentException("Error parsing the dictionary file.", e);
+            dictItemList.add(dictItem);
         }
+
+        return dictItemList;
 
     }
 

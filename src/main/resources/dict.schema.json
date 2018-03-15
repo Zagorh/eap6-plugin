@@ -1,52 +1,56 @@
+
+
 {
   "$id": "http://example.com/example.json",
   "type": "object",
   "definitions": {},
   "$schema": "http://json-schema.org/draft-07/schema#",
   "properties": {
-    "module": {
-      "$id": "/properties/module",
+    "moduleInfo": {
+      "$id": "/properties/moduleInfo",
       "type": "object",
       "properties": {
         "name": {
-          "$id": "/properties/module/properties/name",
+          "$id": "/properties/moduleInfo/properties/name",
           "type": "string"
         },
         "slot": {
-          "$id": "/properties/module/properties/slot",
+          "$id": "/properties/moduleInfo/properties/slot",
           "type": "string"
         }
       }
     },
-    "items": {
-      "$id": "/properties/items",
+    "modules": {
+      "$id": "/properties/modules",
       "type": "array",
+      "minItems": 0,
       "items": {
-        "$id": "/properties/items/items",
+        "$id": "/properties/modules/items",
         "type": "object",
+        "required": ["groupId", "artifactId", "moduleName"],
         "properties": {
           "groupId": {
-            "$id": "/properties/items/items/properties/groupId",
+            "$id": "/properties/modules/items/properties/groupId",
             "type": "string"
           },
           "artifactId": {
-            "$id": "/properties/items/items/properties/artifactId",
+            "$id": "/properties/modules/items/properties/artifactId",
             "type": "string"
           },
           "version": {
-            "$id": "/properties/items/items/properties/version",
+            "$id": "/properties/modules/items/properties/version",
             "type": "string"
           },
           "moduleName": {
-            "$id": "/properties/items/items/properties/moduleName",
+            "$id": "/properties/modules/items/properties/moduleName",
             "type": "string"
           },
           "meta-inf": {
-            "$id": "/properties/items/items/properties/meta-inf",
+            "$id": "/properties/modules/items/properties/meta-inf",
             "type": "string"
           },
           "export": {
-            "$id": "/properties/items/items/properties/export",
+            "$id": "/properties/modules/items/properties/export",
             "type": "string"
           }
         }

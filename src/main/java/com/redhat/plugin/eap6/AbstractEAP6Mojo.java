@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.xml.bind.ValidationException;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.maven.artifact.Artifact;
@@ -78,16 +79,24 @@ public abstract class AbstractEAP6Mojo extends AbstractMojo {
         try {
             // Load the default dictionary
             dictionary.addDictionary(getClass().getResourceAsStream("/eap6.dict"));
-            for (File f : dictionaryFiles)
+            for (File f : dictionaryFiles) {
                 dictionary.addDictionary(f);
+            }
+        } catch (org.everit.json.schema.ValidationException e) {
+            getLog().error(e.getMessage());
+            for (org.everit.json.schema.ValidationException validationException : e.getCausingExceptions()) {
+                getLog().error(validationException.getMessage());
+            }
+            throw new MojoFailureException("Cannot load dictionaries");
         } catch (Exception e) {
             throw new MojoFailureException("Cannot load dictionaries", e);
         }
 
         // Get the artifacts
         Set<Artifact> artifacts = project.getArtifacts();
-        for (Artifact x : artifacts)
+        for (Artifact x : artifacts) {
             getLog().debug("Artifact:" + x);
+        }
 
         // Find artifacts that are not provided, but in the dictionary,
         // and warn
