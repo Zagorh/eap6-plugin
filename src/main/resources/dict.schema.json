@@ -14,6 +14,10 @@
           "$id": "/properties/moduleInfo/properties/name",
           "type": "string"
         },
+        "needsPomSlot": {
+          "$id": "/properties/moduleInfo/properties/needsPomSlot",
+          "type": "boolean"
+        },
         "slot": {
           "$id": "/properties/moduleInfo/properties/slot",
           "type": "string"
@@ -51,6 +55,14 @@
           },
           "export": {
             "$id": "/properties/modules/items/properties/export",
+            "type": "string"
+          },
+          "needsPomSlot": {
+            "$id": "/properties/modules/items/properties/needsPomSlot",
+            "type": "boolean"
+          },
+          "slot": {
+            "$id": "/properties/modules/items/properties/slot",
             "type": "string"
           }
         }

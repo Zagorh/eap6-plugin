@@ -19,8 +19,8 @@
 package com.redhat.plugin.eap6.util;
 
 import com.redhat.plugin.eap6.DictItem;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
+import org.apache.commons.lang.StringUtils;
+import org.apache.maven.artifact.Artifact;
 import org.everit.json.schema.ValidationException;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -29,7 +29,9 @@ import org.json.JSONTokener;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DictItemUtil {
 
@@ -57,12 +59,29 @@ public class DictItemUtil {
             dictItem.setModuleName(itemObj.getString("moduleName"));
             dictItem.setExport(itemObj.getString("export"));
             dictItem.setMetaInf(itemObj.getString("meta-inf"));
+            dictItem.setNeedsPomSlot(itemObj.getBoolean("needsPomSlot"));
+            dictItem.setSlot(itemObj.getString("slot"));
 
             dictItemList.add(dictItem);
         }
 
         return dictItemList;
 
+    }
+
+    public static Map<String, String> getModuleEntryAttributes(DictItem item, Artifact artifact) {
+        Map<String, String> props = new LinkedHashMap<String, String>();
+        props.put("name", item.getModuleName());
+
+        if (item.isNeedsPomSlot()) {
+            props.put("slot", (StringUtils.isNotEmpty(item.getSlot()) ? item.getSlot() : artifact.getVersion()));
+        }
+
+        if (StringUtils.isNotEmpty(item.getMetaInf())) {
+            props.put("meta-inf", item.getMetaInf());
+        }
+
+        return props;
     }
 
 }

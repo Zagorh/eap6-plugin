@@ -27,6 +27,8 @@ public class DictItem {
     private String moduleName;
     private String metaInf;
     private String export;
+    private boolean needsPomSlot;
+    private String slot;
 
     public DictItem() {
     }
@@ -77,6 +79,22 @@ public class DictItem {
 
     public void setExport(String export) {
         this.export = export;
+    }
+
+    public boolean isNeedsPomSlot() {
+        return needsPomSlot;
+    }
+
+    public void setNeedsPomSlot(boolean needsPomSlot) {
+        this.needsPomSlot = needsPomSlot;
+    }
+
+    public String getSlot() {
+        return slot;
+    }
+
+    public void setSlot(String slot) {
+        this.slot = slot;
     }
 
     @Override
