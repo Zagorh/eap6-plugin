@@ -24,6 +24,9 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -40,7 +43,8 @@ import javax.xml.xpath.XPathFactory;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.commons.lang.StringUtils;
+import com.redhat.plugin.eap6.data.DictItem;
+import com.redhat.plugin.eap6.util.DictItemUtil;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -50,6 +54,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
 /**
@@ -152,8 +157,6 @@ public class EAP6DeploymentStructureMojo extends AbstractEAP6Mojo {
     private static XPathExpression xp_deployment;
     private static XPathExpression xp_dependencies;
 
-    private static Set<String> addedModules;
-
     private static final String JBOSS_DEPLOYMENT_STRUCTURE = "jboss-deployment-structure.xml";
     private static final String JBOSS_SUBDEPLOYMENT = "jboss-subdeployment.xml";
 
@@ -166,7 +169,6 @@ public class EAP6DeploymentStructureMojo extends AbstractEAP6Mojo {
                     compile("/jboss-deployment-structure/deployment");
             xp_dependencies = xpf.newXPath().compile("dependencies");
 
-            addedModules = new HashSet<String>();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -266,9 +268,10 @@ public class EAP6DeploymentStructureMojo extends AbstractEAP6Mojo {
             deployment.appendChild(depDependencies);
         }
 
-        fillModuleEntries(doc, depDependencies, moduleMap.values());
+        Map<String, Map<String, String>> dependencyModules = DictItemUtil.getModuleEntriesAttributesForDeploymentStructure(moduleMap);
+        fillModuleEntries(doc, depDependencies, dependencyModules);
 
-        /*if (subdeployments != null && !subdeployments.isEmpty()) {
+        if (subdeployments != null && !subdeployments.isEmpty()) {
             for (SubDeployment sd : subdeployments) {
                 XPathExpression xp = xpf.newXPath().
                         compile("/jboss-deployment-structure/sub-deployment [@name='" + sd.getName() + "']");
@@ -283,15 +286,15 @@ public class EAP6DeploymentStructureMojo extends AbstractEAP6Mojo {
                     subDependencies = doc.createElement("dependencies");
                     subEl.appendChild(subDependencies);
                 }
-                Set<String> depModules = extractModules(
-                        xpf.newXPath().compile("/jboss-deployment-structure/deployment/dependencies/module/@name"),
-                        moduleMap, sd);
+                Map<String, Map<String, String>> depModules = extractModules(
+                        xpf.newXPath().compile("/jboss-deployment-structure/deployment/dependencies/module"),
+                        dependencyModules, sd);
                 getLog().debug("From " + sd.getName() + ":" + depModules);
                 fillModuleEntries(doc, subDependencies, depModules);
 
-                Set<String> exModules = extractModules(
-                        xpf.newXPath().compile("/jboss-deployment-structure/deployment/exclusions/module/@name"),
-                        moduleMap, sd);
+                Map<String, Map<String, String>> exModules = extractModules(
+                        xpf.newXPath().compile("/jboss-deployment-structure/deployment/exclusions/module"),
+                        dependencyModules, sd);
                 if (!exModules.isEmpty()) {
                     Element subExclusions = (Element) xpf.newXPath().compile("exclusions").evaluate(subEl, XPathConstants.NODE);
                     if (subExclusions == null) {
@@ -301,64 +304,80 @@ public class EAP6DeploymentStructureMojo extends AbstractEAP6Mojo {
                     fillModuleEntries(doc, subExclusions, exModules);
                 }
 
-                Set<String> exSubsystems = extractModules(
-                        xpf.newXPath().compile("/jboss-deployment-structure/deployment/exclude-subsystems/subsystem/@name"),
-                        moduleMap, sd);
+                Map<String, Map<String, String>> exSubsystems = extractModules(
+                        xpf.newXPath().compile("/jboss-deployment-structure/deployment/exclude-subsystems/subsystem"),
+                        dependencyModules, sd);
                 if (!exSubsystems.isEmpty()) {
                     Element subsysExclusions = (Element) xpf.newXPath().compile("exclude-subsystems").evaluate(subEl, XPathConstants.NODE);
                     if (subsysExclusions == null) {
                         subsysExclusions = doc.createElement("exclude-subsystems");
                         subEl.appendChild(subsysExclusions);
                     }
-                    fillEntries("subsystem", doc, subsysExclusions, exSubsystems);
+                    fillEntries("subsystem", doc, subsysExclusions, exSubsystems.keySet());
                 }
 
             }
-        }*/
+        }
     }
 
 
-    private Set<String> extractModules(XPathExpression xp, Map<Artifact, DictItem> moduleMap, SubDeployment sd) throws XPathExpressionException {
-        Set<String> modules = new HashSet<String>();
+    private Map<String, Map<String, String>> extractModules(XPathExpression xp, Map<String, Map<String, String>> moduleMap, SubDeployment sd) throws XPathExpressionException {
+        Map<String, Map<String, String>> modules = new HashMap<String, Map<String, String>>();
         NodeList nl = (NodeList) xp.evaluate(sd.getDocument(), XPathConstants.NODESET);
         int n = nl.getLength();
         for (int i = 0; i < n; i++) {
-            if (moduleMap.values().contains(nl.item(i).getTextContent()))
+            Element elem = (Element) nl;
+            String name = elem.getAttribute("name");
+            if (moduleMap.containsKey(name)) {
                 continue;
-            modules.add(nl.item(i).getTextContent());
+            }
+            NamedNodeMap attributes = elem.getAttributes();
+            Map<String, String> attributeValues = new LinkedHashMap<String, String>();
+            for (int j = 0; j < attributes.getLength(); j++) {
+                attributeValues.put(attributes.item(j).getNodeName(), attributes.item(j).getNodeValue());
+            }
+            modules.put(name, attributeValues);
         }
         return modules;
     }
 
-    protected void fillModuleEntries(Document doc, Element dependencies, Collection<DictItem> modules) {
-        for (DictItem module : modules) {
-            if (!addedModules.contains(module.getModuleName())) {
+    protected List<DictItem> convertModuleNamesToDictItems(Collection<String> moduleNames) {
+        List<DictItem> modules = new ArrayList<DictItem>(moduleNames.size());
+
+        for (String name : moduleNames) {
+            DictItem dictItem = new DictItem();
+            dictItem.setModuleName(name);
+            modules.add(dictItem);
+        }
+
+        return modules;
+    }
+
+    protected void fillModuleEntries(Document doc, Element dependencies, Map<String, Map<String, String>> modules) {
+        Set<String> addedModules = new HashSet<String>();
+
+        for (Map.Entry<String, Map<String, String>> module : modules.entrySet()) {
+            if (!addedModules.contains(module.getKey())) {
                 Element moduleEl = doc.createElement("module");
-                moduleEl.setAttribute("name", module.getModuleName());
-                if (!StringUtils.isEmpty(module.getSlot())) {
-                    moduleEl.setAttribute("slot", module.getSlot());
-                }
-                if (!StringUtils.isEmpty(module.getExport())) {
-                    moduleEl.setAttribute("export", module.getExport());
-                }
-                if (!StringUtils.isEmpty(module.getMetaInf())) {
-                    moduleEl.setAttribute("meta-inf", module.getMetaInf());
+
+                for (Map.Entry<String, String> attr : module.getValue().entrySet()) {
+                    moduleEl.setAttribute(attr.getKey(), attr.getValue());
                 }
 
                 dependencies.appendChild(moduleEl);
-                addedModules.add(module.getModuleName());
+                addedModules.add(module.getKey());
             }
         }
 
     }
 
-    protected void fillEntries(String elementName, Document doc, Element dependencies, Collection<DictItem> modules)
+    protected void fillEntries(String elementName, Document doc, Element dependencies, Collection<String> modules)
             throws XPathExpressionException {
-        for (DictItem module : modules) {
-            XPathExpression xp = xpf.newXPath().compile(String.format("%s [@name=\"%s\"]", elementName, module.getModuleName()));
+        for (String module : modules) {
+            XPathExpression xp = xpf.newXPath().compile(String.format("%s [@name=\"%s\"]", elementName, module));
             if (xp.evaluate(dependencies, XPathConstants.NODE) == null) {
                 Element moduleEl = doc.createElement(elementName);
-                moduleEl.setAttribute("name", module.getModuleName());
+                moduleEl.setAttribute("name", module);
                 dependencies.appendChild(moduleEl);
             }
         }

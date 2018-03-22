@@ -18,7 +18,8 @@
 
 package com.redhat.plugin.eap6.util;
 
-import com.redhat.plugin.eap6.DictItem;
+import com.redhat.plugin.eap6.data.DictItem;
+import com.redhat.plugin.eap6.data.DictModuleInfo;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.everit.json.schema.ValidationException;
@@ -38,14 +39,23 @@ public class DictItemUtil {
     private DictItemUtil() {
     }
 
-    public static List<DictItem> parseDictionaryFile(Reader rd) throws IOException, ValidationException {
+    public static DictModuleInfo fetchDictModuleInfo(JSONObject jsonObject) {
+        DictModuleInfo dictModuleInfo = null;
+        JSONObject moduleInfoJson = jsonObject.getJSONObject("moduleInfo");
 
-        JSONObject dictionaryObj = new JSONObject(new JSONTokener(rd));
+        if (moduleInfoJson != null) {
+            dictModuleInfo = new DictModuleInfo();
+            dictModuleInfo.setName(moduleInfoJson.getString("name"));
+            dictModuleInfo.setNeedsPomSlot(moduleInfoJson.optBoolean("needsPomSlot"));
+            dictModuleInfo.setSlot(moduleInfoJson.optString("slot", null));
+        }
 
-        JSONUtil.validateJSON(dictionaryObj);
+        return dictModuleInfo;
+    }
 
+    public static List<DictItem> fetchDictionaryItems(JSONObject jsonObject) {
 
-        JSONArray itemsArray = dictionaryObj.getJSONArray("modules");
+        JSONArray itemsArray = jsonObject.getJSONArray("modules");
 
         List<DictItem> dictItemList = new ArrayList<DictItem>(itemsArray.length());
 
@@ -55,12 +65,12 @@ public class DictItemUtil {
             DictItem dictItem = new DictItem();
             dictItem.setGroupId(itemObj.getString("groupId"));
             dictItem.setArtifactId(itemObj.getString("artifactId"));
-            dictItem.setVersion(itemObj.getString("version"));
             dictItem.setModuleName(itemObj.getString("moduleName"));
-            dictItem.setExport(itemObj.getString("export"));
-            dictItem.setMetaInf(itemObj.getString("meta-inf"));
-            dictItem.setNeedsPomSlot(itemObj.getBoolean("needsPomSlot"));
-            dictItem.setSlot(itemObj.getString("slot"));
+            dictItem.setVersion(itemObj.optString("version", null));
+            dictItem.setExport(itemObj.optString("export", null));
+            dictItem.setMetaInf(itemObj.optString("meta-inf", null));
+            dictItem.setNeedsPomSlot(itemObj.optBoolean("needsPomSlot"));
+            dictItem.setSlot(itemObj.optString("slot", null));
 
             dictItemList.add(dictItem);
         }
@@ -69,7 +79,15 @@ public class DictItemUtil {
 
     }
 
-    public static Map<String, String> getModuleEntryAttributes(DictItem item, Artifact artifact) {
+    public static Map<String, Map<String, String>> getModuleEntriesAttributesForDeploymentStructure(Map<Artifact, DictItem> items) {
+        Map<String, Map<String, String>> result = new LinkedHashMap<String, Map<String, String>>();
+        for(Map.Entry<Artifact, DictItem> entry : items.entrySet()) {
+            result.put(entry.getValue().getModuleName(), getModuleEntryAttributesForDeploymentStructure(entry.getValue(), entry.getKey()));
+        }
+        return result;
+    }
+
+    public static Map<String, String> getModuleEntryAttributesForDeploymentStructure(DictItem item, Artifact artifact) {
         Map<String, String> props = new LinkedHashMap<String, String>();
         props.put("name", item.getModuleName());
 
@@ -77,8 +95,27 @@ public class DictItemUtil {
             props.put("slot", (StringUtils.isNotEmpty(item.getSlot()) ? item.getSlot() : artifact.getVersion()));
         }
 
+        if (StringUtils.isNotEmpty(item.getExport())) {
+            props.put("export", item.getExport());
+        }
+
         if (StringUtils.isNotEmpty(item.getMetaInf())) {
             props.put("meta-inf", item.getMetaInf());
+        }
+
+        return props;
+    }
+
+    public static Map<String, String> getDependencyEntryAttributesForModule(DictItem item, Artifact artifact) {
+        Map<String, String> props = new LinkedHashMap<String, String>();
+        props.put("name", item.getModuleName());
+
+        if (item.isNeedsPomSlot()) {
+            props.put("slot", (StringUtils.isNotEmpty(item.getSlot()) ? item.getSlot() : artifact.getVersion()));
+        }
+
+        if (StringUtils.isNotEmpty(item.getExport())) {
+            props.put("export", item.getExport());
         }
 
         return props;
