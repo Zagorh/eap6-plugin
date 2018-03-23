@@ -3,6 +3,7 @@ package com.redhat.plugin.eap6.data;
 public class DictModuleInfo {
 
 	private String name;
+	private String metaInf;
 	private boolean needsPomSlot;
 	private String slot;
 
@@ -12,6 +13,14 @@ public class DictModuleInfo {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getMetaInf() {
+		return metaInf;
+	}
+
+	public void setMetaInf(String metaInf) {
+		this.metaInf = metaInf;
 	}
 
 	public boolean isNeedsPomSlot() {
