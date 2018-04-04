@@ -46,7 +46,6 @@ public class DictItemUtil {
         if (moduleInfoJson != null) {
             dictModuleInfo = new DictModuleInfo();
             dictModuleInfo.setName(moduleInfoJson.getString("name"));
-            dictModuleInfo.setMetaInf(moduleInfoJson.optString("meta-inf", null));
             dictModuleInfo.setNeedsPomSlot(moduleInfoJson.optBoolean("needsPomSlot"));
             dictModuleInfo.setSlot(moduleInfoJson.optString("slot", null));
         }

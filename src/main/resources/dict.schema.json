@@ -15,10 +15,6 @@
           "$id": "/properties/moduleInfo/properties/name",
           "type": "string"
         },
-        "name": {
-          "$id": "/properties/moduleInfo/properties/meta-inf",
-          "type": "string"
-        },
         "needsPomSlot": {
           "$id": "/properties/moduleInfo/properties/needsPomSlot",
           "type": "boolean"
@@ -26,6 +22,28 @@
         "slot": {
           "$id": "/properties/moduleInfo/properties/slot",
           "type": "string"
+        }
+      }
+    },
+    "moduleGroups": {
+      "$id": "/properties/moduleGroups",
+      "type": "array",
+      "items": {
+        "$id": "/properties/moduleGroups/items",
+        "type": "object",
+        "properties": {
+          "groupId": {
+            "$id": "/properties/moduleGroups/items/properties/groupId",
+            "type": "string"
+          },
+          "artifactId": {
+            "$id": "/properties/moduleGroups/items/properties/artifactId",
+            "type": "string"
+          },
+          "meta-inf": {
+            "$id": "/properties/moduleGroups/items/properties/meta-inf",
+            "type": "string"
+          }
         }
       }
     },

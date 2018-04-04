@@ -19,16 +19,12 @@
 package com.redhat.plugin.eap6;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -66,14 +62,8 @@ public abstract class AbstractEAP6Mojo extends AbstractMojo {
     /**
      * Gives the location of dictionary files listing all available modules
      */
-    @Parameter(required = true)
-    protected File defaultDictionaryFile;
-
     @Parameter(property = "dictionaryFiles", required = false)
     protected List<File> dictionaryFiles;
-
-    @Parameter(defaultValue = "true")
-    protected Boolean useDependenciesAsDictionaries = Boolean.TRUE;
 
     @Parameter(defaultValue = "${project.build.finalName}", required = true)
     protected String buildFinalName;
@@ -89,8 +79,7 @@ public abstract class AbstractEAP6Mojo extends AbstractMojo {
         // Read the dictionary files
         try {
             // Load the default dictionary
-
-            dictionary.addDictionary(defaultDictionaryFile);
+            dictionary.addDictionary(getClass().getResourceAsStream("/eap6.dict"));
             for (File f : dictionaryFiles) {
                 dictionary.addDictionary(f);
             }
@@ -169,19 +158,6 @@ public abstract class AbstractEAP6Mojo extends AbstractMojo {
         } catch (Exception e) {
             throw new MojoFailureException("Cannot initialize skeleton XML", e);
         }
-    }
-
-    protected void getDictionaryFromArtifacts() {
-        Set<Artifact> artifacts = project.getArtifacts();
-        for (Artifact artifact : artifacts) {
-
-        }
-    }
-
-    private getDictionariesFromArtifact(File file) throws FileNotFoundException {
-        ZipInputStream zis = new ZipInputStream(new FileInputStream(file));
-        ZipEntry entry;
-
     }
 
     protected void writeXmlFile(Document doc, File workDirectory, String fileName) throws MojoFailureException {
