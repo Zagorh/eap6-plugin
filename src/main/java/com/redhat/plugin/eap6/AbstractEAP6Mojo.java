@@ -68,7 +68,7 @@ public abstract class AbstractEAP6Mojo extends AbstractMojo {
     protected String buildFinalName;
 
     protected Dictionary dictionary = new Dictionary();
-    protected Map<Artifact, DictItem> artifactsAsModules;
+    protected Map<Artifact, String> artifactsAsModules;
     protected Map<String, Artifact> reverseMap = new HashMap<String, Artifact>();
 
     /**
@@ -103,7 +103,7 @@ public abstract class AbstractEAP6Mojo extends AbstractMojo {
         Set<Artifact> artifactsNotProvided = new TreeSet<Artifact>();
         // Find artifacts that should be in deployment structure, that is,
         // all artifacts that have a non-null mapping, and provided
-        artifactsAsModules = new HashMap<Artifact, DictItem>();
+        artifactsAsModules = new HashMap<Artifact, String>();
 
         reverseMap = new HashMap<String, Artifact>();
         for (Artifact a : artifacts) {
@@ -114,7 +114,7 @@ public abstract class AbstractEAP6Mojo extends AbstractMojo {
                 if (!a.getScope().equals(Artifact.SCOPE_PROVIDED)) {
                     artifactsNotProvided.add(a);
                 } else {
-                    artifactsAsModules.put(a, item);
+                    artifactsAsModules.put(a, item.getModuleName());
                 }
             }
         }
