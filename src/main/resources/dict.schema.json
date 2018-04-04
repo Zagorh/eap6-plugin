@@ -1,3 +1,5 @@
+
+
 {
   "$id": "http://example.com/example.json",
   "type": "object",
@@ -7,9 +9,6 @@
     "moduleInfo": {
       "$id": "/properties/moduleInfo",
       "type": "object",
-      "required": [
-        "name"
-      ],
       "properties": {
         "name": {
           "$id": "/properties/moduleInfo/properties/name",
@@ -25,28 +24,6 @@
         }
       }
     },
-    "moduleGroups": {
-      "$id": "/properties/moduleGroups",
-      "type": "array",
-      "items": {
-        "$id": "/properties/moduleGroups/items",
-        "type": "object",
-        "properties": {
-          "groupId": {
-            "$id": "/properties/moduleGroups/items/properties/groupId",
-            "type": "string"
-          },
-          "artifactId": {
-            "$id": "/properties/moduleGroups/items/properties/artifactId",
-            "type": "string"
-          },
-          "meta-inf": {
-            "$id": "/properties/moduleGroups/items/properties/meta-inf",
-            "type": "string"
-          }
-        }
-      }
-    },
     "modules": {
       "$id": "/properties/modules",
       "type": "array",
@@ -54,11 +31,7 @@
       "items": {
         "$id": "/properties/modules/items",
         "type": "object",
-        "required": [
-          "groupId",
-          "artifactId",
-          "moduleName"
-        ],
+        "required": ["groupId", "artifactId", "moduleName"],
         "properties": {
           "groupId": {
             "$id": "/properties/modules/items/properties/groupId",

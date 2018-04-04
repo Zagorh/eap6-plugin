@@ -19,11 +19,9 @@
 
 package com.redhat.plugin.eap6;
 
-import java.util.HashSet;
 import java.util.Map;
 
 import java.io.File;
-import java.util.Set;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -31,10 +29,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import com.redhat.plugin.eap6.data.DictItem;
-import com.redhat.plugin.eap6.data.DictModuleInfo;
-import com.redhat.plugin.eap6.util.DictItemUtil;
-import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -192,23 +186,18 @@ public class EAP6ModuleMojo extends AbstractEAP6Mojo {
         }
     }
 
-    protected void buildModule(Document doc, Map<Artifact, DictItem> moduleMap) throws MojoFailureException, XPathExpressionException {
+    protected void buildModule(Document doc, Map<Artifact, String> moduleMap) throws MojoFailureException, XPathExpressionException {
 
         // check if there is a mapping in the dictionary for the project artifact
-        DictModuleInfo moduleInfo = dictionary.getModuleInfo();
-        if (moduleInfo == null || StringUtils.isBlank(moduleInfo.getName())) {
-            throw new MojoFailureException("No moduleInfo found in the dictionary.");
+        DictItem mapping = dictionary.find(project.getGroupId(), project.getArtifactId(), project.getVersion());
+        if (mapping == null || mapping.getModuleName() == null) {
+            throw new MojoFailureException("No mapping found for the project artifact: " + project.getArtifact());
         }
 
         Element root = doc.getDocumentElement();
         if (!root.getTagName().equals("module"))
             throw new MojoFailureException("Root element is not module");
-        root.setAttribute("name", moduleInfo.getName());
-
-        if (moduleInfo.isNeedsPomSlot()) {
-            String slot = StringUtils.isNotBlank(moduleInfo.getSlot()) ? moduleInfo.getSlot() : project.getVersion();
-            root.setAttribute("slot", slot);
-        }
+        root.setAttribute("name", mapping.getModuleName());
 
         Element dependencies = (Element) xp_dependencies.evaluate(doc, XPathConstants.NODE);
         if (dependencies == null) {
@@ -228,23 +217,16 @@ public class EAP6ModuleMojo extends AbstractEAP6Mojo {
             resources.appendChild(resource_root);
         }
 
-        Set<String> addedModules = new HashSet<String>();
-
         // set resource-root path attribute
         resource_root.setAttribute("path", buildFinalName + "." + project.getPackaging());
 
-        for (Map.Entry<Artifact, DictItem> entry : moduleMap.entrySet()) {
-            String module = entry.getValue().getModuleName();
-            if (!addedModules.contains(module)) {
+        for (Map.Entry<Artifact, String> entry : moduleMap.entrySet()) {
+            String module = entry.getValue();
+            XPathExpression xp = xpf.newXPath().compile(String.format("module [@name=\"%s\"]", module));
+            if (xp.evaluate(dependencies, XPathConstants.NODE) == null) {
                 Element moduleEl = doc.createElement("module");
-
-                Map<String, String> attributes = DictItemUtil.getDependencyEntryAttributesForModule(entry.getValue(), entry.getKey());
-                for (Map.Entry<String, String> attributeEntry : attributes.entrySet()) {
-                    moduleEl.setAttribute(attributeEntry.getKey(), attributeEntry.getValue());
-                }
-
+                moduleEl.setAttribute("name", module);
                 dependencies.appendChild(moduleEl);
-                addedModules.add(module);
             }
         }
     }

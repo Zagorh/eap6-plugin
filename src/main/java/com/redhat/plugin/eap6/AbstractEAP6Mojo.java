@@ -26,10 +26,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.xml.bind.ValidationException;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import com.redhat.plugin.eap6.data.DictItem;
-import com.redhat.plugin.eap6.data.Dictionary;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;

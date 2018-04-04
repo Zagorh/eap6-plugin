@@ -17,7 +17,7 @@
    limitations under the License.
 */
 
-package com.redhat.plugin.eap6.data;
+package com.redhat.plugin.eap6;
 
 public class DictItem {
 

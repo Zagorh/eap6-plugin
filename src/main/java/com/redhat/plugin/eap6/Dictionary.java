@@ -16,45 +16,24 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-package com.redhat.plugin.eap6.data;
+package com.redhat.plugin.eap6;
 
 import com.redhat.plugin.eap6.util.DictItemUtil;
-import com.redhat.plugin.eap6.util.JSONUtil;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
+import java.text.ParseException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Dictionary {
 
-    DictModuleInfo moduleInfo;
-    Map<String, JSONObject> moduleGroups = new HashMap<String, JSONObject>();
     Map<String, DictItem> dictionaries = new LinkedHashMap<String, DictItem>();
-
-    public DictModuleInfo getModuleInfo() {
-        return moduleInfo;
-    }
-
-    public void setModuleInfo(DictModuleInfo moduleInfo) {
-        this.moduleInfo = moduleInfo;
-    }
-
-    public Map<String, DictItem> getDictionaries() {
-        return dictionaries;
-    }
-
-    public void setDictionaries(Map<String, DictItem> dictionaries) {
-        this.dictionaries = dictionaries;
-    }
 
     public void addDictionary(Collection<DictItem> dictList) {
         for (DictItem item : dictList) {
@@ -64,25 +43,11 @@ public class Dictionary {
 
     public void addDictionary(File f) throws IOException {
         FileReader reader = new FileReader(f);
-        JSONObject jsonObject = transformFileToJsonObject(reader);
-
-        setModuleInfo(DictItemUtil.fetchDictModuleInfo(jsonObject));
-        addDictionary(DictItemUtil.fetchDictionaryItems(jsonObject));
+        addDictionary(DictItemUtil.parseDictionaryFile(reader));
     }
 
     public void addDictionary(InputStream stream) throws IOException {
-        JSONObject jsonObject = transformFileToJsonObject(new InputStreamReader(stream));
-
-        setModuleInfo(DictItemUtil.fetchDictModuleInfo(jsonObject));
-        addDictionary(DictItemUtil.fetchDictionaryItems(jsonObject));
-    }
-
-    private JSONObject transformFileToJsonObject(Reader rd) throws IOException {
-        JSONObject dictionaryObj = new JSONObject(new JSONTokener(rd));
-
-        JSONUtil.validateJSON(dictionaryObj);
-
-        return dictionaryObj;
+        addDictionary(DictItemUtil.parseDictionaryFile(new InputStreamReader(stream)));
     }
 
     public DictItem find(String groupId, String artifactId, String version) {
