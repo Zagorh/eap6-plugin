@@ -106,6 +106,8 @@ public class DictItem {
                 ", moduleName='" + moduleName + '\'' +
                 ", metaInf='" + metaInf + '\'' +
                 ", export='" + export + '\'' +
+                ", needsPomSlot=" + needsPomSlot +
+                ", slot='" + slot + '\'' +
                 '}';
     }
 }

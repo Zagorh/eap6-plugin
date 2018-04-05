@@ -49,7 +49,7 @@ import org.w3c.dom.ls.LSSerializer;
  */
 public abstract class AbstractEAP6Mojo extends AbstractMojo {
 
-    @Component
+    @Parameter( defaultValue = "${project}", readonly = true )
     protected MavenProject project;
 
     @Parameter(defaultValue = "true")
@@ -57,6 +57,9 @@ public abstract class AbstractEAP6Mojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${basedir}/src/main/etc", required = true)
     protected File skeletonDir;
+
+    @Parameter
+    protected File defaultDictionaryFile;
 
     /**
      * Gives the location of dictionary files listing all available modules
@@ -78,7 +81,11 @@ public abstract class AbstractEAP6Mojo extends AbstractMojo {
         // Read the dictionary files
         try {
             // Load the default dictionary
-            dictionary.addDictionary(getClass().getResourceAsStream("/eap6.dict"));
+            if (defaultDictionaryFile != null) {
+                dictionary.addDictionary(defaultDictionaryFile);
+            } else {
+                dictionary.addDictionary(getClass().getResourceAsStream("/default.dict"));
+            }
             for (File f : dictionaryFiles) {
                 dictionary.addDictionary(f);
             }
