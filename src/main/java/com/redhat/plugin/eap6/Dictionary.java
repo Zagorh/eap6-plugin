@@ -55,6 +55,9 @@ public class Dictionary {
         if (item == null) {
             item = dictionaries.get(dictionaryKey(groupId, artifactId, "*"));
         }
+        if (item == null) {
+            item = dictionaries.get(dictionaryKey(groupId, artifactId, null));
+        }
         return item;
     }
 

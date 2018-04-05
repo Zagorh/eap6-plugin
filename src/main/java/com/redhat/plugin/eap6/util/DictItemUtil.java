@@ -49,39 +49,24 @@ public class DictItemUtil {
 
         List<DictItem> dictItemList = new ArrayList<DictItem>(itemsArray.length());
 
-        for (Object item : itemsArray.toList()) {
-            JSONObject itemObj = (JSONObject) item;
+        for (int i = 0; i < itemsArray.length(); i++) {
+            JSONObject itemObj = itemsArray.getJSONObject(i);
 
             DictItem dictItem = new DictItem();
             dictItem.setGroupId(itemObj.getString("groupId"));
             dictItem.setArtifactId(itemObj.getString("artifactId"));
-            dictItem.setVersion(itemObj.getString("version"));
+            dictItem.setVersion(itemObj.optString("version", null));
             dictItem.setModuleName(itemObj.getString("moduleName"));
-            dictItem.setExport(itemObj.getString("export"));
-            dictItem.setMetaInf(itemObj.getString("meta-inf"));
-            dictItem.setNeedsPomSlot(itemObj.getBoolean("needsPomSlot"));
-            dictItem.setSlot(itemObj.getString("slot"));
+            dictItem.setExport(itemObj.optString("export", null));
+            dictItem.setMetaInf(itemObj.optString("meta-inf", null));
+            dictItem.setNeedsPomSlot(itemObj.optBoolean("needsPomSlot"));
+            dictItem.setSlot(itemObj.optString("slot", null));
 
             dictItemList.add(dictItem);
         }
 
         return dictItemList;
 
-    }
-
-    public static Map<String, String> getModuleEntryAttributes(DictItem item, Artifact artifact) {
-        Map<String, String> props = new LinkedHashMap<String, String>();
-        props.put("name", item.getModuleName());
-
-        if (item.isNeedsPomSlot()) {
-            props.put("slot", (StringUtils.isNotEmpty(item.getSlot()) ? item.getSlot() : artifact.getVersion()));
-        }
-
-        if (StringUtils.isNotEmpty(item.getMetaInf())) {
-            props.put("meta-inf", item.getMetaInf());
-        }
-
-        return props;
     }
 
 }

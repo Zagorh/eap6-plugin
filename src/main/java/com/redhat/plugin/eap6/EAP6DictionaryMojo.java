@@ -65,7 +65,7 @@ public class EAP6DictionaryMojo extends AbstractMojo {
 
         JSONObject jsonObject = new JSONObject();
         JSONArray items = new JSONArray();
-        jsonObject.put("items", items);
+        jsonObject.put("modules", items);
 
         for (File jar : jars) {
             JarFile jarFile = null;

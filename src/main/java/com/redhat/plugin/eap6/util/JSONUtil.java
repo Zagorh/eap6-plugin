@@ -11,7 +11,7 @@ import java.io.InputStream;
 
 public class JSONUtil {
 
-    private static final String JSON_SCHEMA_FILE = "dict.schema.json";
+    private static final String JSON_SCHEMA_FILE = "/dict.schema.json";
 
     private JSONUtil() {
     }
