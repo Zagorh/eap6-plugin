@@ -34,11 +34,14 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -74,16 +77,16 @@ public class EAP6DictionaryMojo extends AbstractMojo {
                     continue;
                 }
 
-                File moduleXml = new File(jar.getParentFile(), "module.xml");
+                File moduleXml = getModuleXmlFile(jar);
 
-                if (moduleXml == null) {
+                if (moduleXml == null || !moduleXml.exists()) {
                     getLog().warn("No moduleXml in folder: " + jar.getParentFile().getAbsolutePath());
                     continue;
                 }
 
-                String moduleName = getModuleNameFromModuleXml(moduleXml);
+                Map<String, String> moduleProps = getModuleNameFromModuleXml(moduleXml);
 
-                if (moduleName == null) {
+                if (moduleProps == null || moduleProps.isEmpty()) {
                     getLog().warn("No moduleName found in xml: " + moduleXml.getAbsolutePath());
                 }
 
@@ -91,12 +94,21 @@ public class EAP6DictionaryMojo extends AbstractMojo {
 
                 item.put("groupId", props.getProperty("groupId"));
                 item.put("artifactId", props.getProperty("artifactId"));
-                item.put("moduleName", moduleName);
+                item.put("moduleName", moduleProps.get("name"));
+
+                String slot = moduleProps.get("slot");
+                if (slot != null) {
+                    item.put("slot", slot);
+                    item.put("needsPomSlot", true);
+                }
 
                 items.put(item);
 
             } catch (IOException e) {
                 getLog().warn("Could not read the jar file: " + jar.getAbsolutePath());
+                if (getLog().isDebugEnabled()) {
+                    getLog().debug(e.getMessage(), e);
+                }
             }
         }
 
@@ -139,13 +151,39 @@ public class EAP6DictionaryMojo extends AbstractMojo {
         }
     }
 
-    private String getModuleNameFromModuleXml(File moduleXml) {
+    private File getModuleXmlFile(File jarFile) {
+        File currentDirectory = jarFile;
+        File moduleXml = null;
+
+        while(currentDirectory.getParent() != null) {
+            currentDirectory = currentDirectory.getParentFile();
+
+            moduleXml = new File(currentDirectory, "module.xml");
+
+            if (moduleXml.exists()) {
+                break;
+            }
+        }
+
+        return moduleXml;
+    }
+
+    private Map<String, String> getModuleNameFromModuleXml(File moduleXml) {
         try {
+            Map<String, String> result = new HashMap<String, String>();
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(false);
 
             Document module = factory.newDocumentBuilder().parse(moduleXml);
-            return module.getDocumentElement().getAttribute("name");
+
+            result.put("name", module.getDocumentElement().getAttribute("name"));
+
+            String slot = module.getDocumentElement().getAttribute("slot");
+            if (slot != null && !slot.isEmpty() && !slot.equals("main")) {
+                result.put("slot", slot);
+            }
+
+            return result;
         } catch (SAXException e) {
             getLog().warn("Problem parsing the moduleXml file: " + moduleXml.getAbsolutePath(), e);
         } catch (ParserConfigurationException e) {
