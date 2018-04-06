@@ -18,11 +18,11 @@
 -->
 <project>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>eap6-maven-plugin</artifactId>
+    <groupId>com.github.Zagorh</groupId>
+    <artifactId>jboss-eap-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <name>EAP6 Plugin</name>
-    <version>1.1.0</version>
+    <name>JBoss EAP Plugin</name>
+    <version>1.0.0</version>
     <licenses>
         <license>
             <name>Apache License Version 2.0</name>

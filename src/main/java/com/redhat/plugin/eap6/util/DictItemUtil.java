@@ -69,4 +69,46 @@ public class DictItemUtil {
 
     }
 
+    public static Map<String, Map<String, String>> getModuleEntriesAttributesForDeploymentStructure(Map<Artifact, DictItem> items) {
+        Map<String, Map<String, String>> result = new LinkedHashMap<String, Map<String, String>>();
+        for(Map.Entry<Artifact, DictItem> entry : items.entrySet()) {
+            result.put(entry.getValue().getModuleName(), getModuleEntryAttributesForDeploymentStructure(entry.getValue(), entry.getKey()));
+        }
+        return result;
+    }
+
+    public static Map<String, String> getModuleEntryAttributesForDeploymentStructure(DictItem item, Artifact artifact) {
+        Map<String, String> props = new LinkedHashMap<String, String>();
+        props.put("name", item.getModuleName());
+
+        if (item.isNeedsPomSlot()) {
+            props.put("slot", (StringUtils.isNotEmpty(item.getSlot()) ? item.getSlot() : artifact.getVersion()));
+        }
+
+        if (StringUtils.isNotEmpty(item.getExport())) {
+            props.put("export", item.getExport());
+        }
+
+        if (StringUtils.isNotEmpty(item.getMetaInf())) {
+            props.put("meta-inf", item.getMetaInf());
+        }
+
+        return props;
+    }
+
+    public static Map<String, String> getDependencyEntryAttributesForModule(DictItem item, Artifact artifact) {
+        Map<String, String> props = new LinkedHashMap<String, String>();
+        props.put("name", item.getModuleName());
+
+        if (item.isNeedsPomSlot()) {
+            props.put("slot", (StringUtils.isNotEmpty(item.getSlot()) ? item.getSlot() : artifact.getVersion()));
+        }
+
+        if (StringUtils.isNotEmpty(item.getExport())) {
+            props.put("export", item.getExport());
+        }
+
+        return props;
+    }
+
 }
