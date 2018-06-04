@@ -1,4 +1,4 @@
-This plugin generates `jboss-deployment-structure.xml` file or
+eThis plugin generates `jboss-deployment-structure.xml` file or
 `module.xml` based on the module dependencies.
 
 Configuration items:
